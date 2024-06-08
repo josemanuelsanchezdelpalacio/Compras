@@ -4,6 +4,7 @@ import com.dam2.jose.compras.data.Compra
 import com.dam2.jose.compras.data.Datos
 
 data class UiState(
-    var productosEnCesta: MutableList<Compra> = mutableListOf(),
-    var productoSeleccionado: Datos? = null
+    var productosEnCesta: List<Compra> = mutableListOf(),
+    var productoSeleccionado: Datos? = null,
+    var productos: List<Datos> = listOf()
 )

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,10 +17,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.dam2.jose.compras.data.listaComprado
+import com.dam2.jose.compras.models.ViewModel
 import com.dam2.jose.compras.navigations.AppScreens
+import com.dam2.jose.compras.states.UiState
 
 @Composable
-fun FirstScreen(navController: NavController){
+fun FirstScreen(navController: NavController, mvvm: ViewModel){
+    val uiState by mvvm.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -27,14 +33,15 @@ fun FirstScreen(navController: NavController){
                 }
             )
         }
-    ){
-        BodyFirstScreen(navController)
+    ) {
+        BodyFirstScreen(navController, mvvm, uiState)
     }
 }
 
 @Composable
-fun BodyFirstScreen(navController: NavController) {
+fun BodyFirstScreen(navController: NavController, mvvm: ViewModel, uiState: UiState) {
     val context = LocalContext.current
+
     Column() {
         Card(
             modifier = Modifier
@@ -69,9 +76,9 @@ fun BodyFirstScreen(navController: NavController) {
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     OutlinedButton(onClick = {
-                        if(listaComprado.isEmpty()){
-                            Toast.makeText(context, "La cesta esta vacia", Toast.LENGTH_SHORT).show()
-                        }else{
+                        if (uiState.productosEnCesta.isEmpty()) {
+                            Toast.makeText(context, "La cesta está vacía", Toast.LENGTH_SHORT).show()
+                        } else {
                             navController.navigate(route = AppScreens.VerCesta.route)
                         }
                     }) {

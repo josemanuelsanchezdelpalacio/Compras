@@ -17,35 +17,37 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.dam2.jose.compras.data.*
+import com.dam2.jose.compras.models.ViewModel
 
 @Composable
-fun VerCesta(navController: NavController){
+fun VerCesta(navController: NavController, mvvm: ViewModel) {
+    val uiState by mvvm.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar() {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver atras",
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver atrás",
                     modifier = Modifier.clickable {
                         navController.popBackStack()
                     })
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Volver atras")
+                Text("Volver atrás")
             }
         }
-    ){
-        BodyVerCestaScreen(navController)
+    ) {
+        BodyVerCestaScreen(navController, mvvm)
     }
 }
 
 @Composable
-fun BodyVerCestaScreen(navController: NavController) {
+fun BodyVerCestaScreen(navController: NavController, mvvm: ViewModel) {
     val context = LocalContext.current
+    val uiState by mvvm.uiState.collectAsState()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        //Se crea un lazycolumn que almacena un elemento items
-        //Ese elemento items almacena la lista con la informacion de los productos que han sido comprados y
-        // llama a un metodo para maquetar el LazyColumn
-        items(listaComprado) { compra ->
+        items(uiState.productosEnCesta) { compra ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -53,7 +55,9 @@ fun BodyVerCestaScreen(navController: NavController) {
                 elevation = 4.dp
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().wrapContentSize(Alignment.Center),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentSize(Alignment.Center),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Column(
@@ -71,11 +75,9 @@ fun BodyVerCestaScreen(navController: NavController) {
                             style = MaterialTheme.typography.body1,
                             color = Color.Gray
                         )
-                        //si se pulsa Pagar se elimina de la lista listaComprado y muestra un toast con Compra realizada
                         OutlinedButton(
                             onClick = {
-                                val compra = Compra(nombre = compra.nombre, precio = compra.precio)
-                                listaComprado.remove(compra)
+                                mvvm.pagar(compra)
                                 Toast.makeText(context, "Compra realizada", Toast.LENGTH_SHORT).show()
                             }
                         ) {

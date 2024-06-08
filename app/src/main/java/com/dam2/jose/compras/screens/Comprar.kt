@@ -25,22 +25,24 @@ import com.dam2.jose.compras.data.Compra
 import com.dam2.jose.compras.data.Datos
 import com.dam2.jose.compras.data.lista
 import com.dam2.jose.compras.data.listaComprado
+import com.dam2.jose.compras.models.ViewModel
 import com.dam2.jose.compras.navigations.AppScreens
 
-private var infoProductos by mutableStateOf(true)
 
 @Composable
-fun Comprar(navController: NavController){
+fun Comprar(navController: NavController, mvvm: ViewModel) {
+    val uiState by mvvm.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar() {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver atras",
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver atrás",
                     modifier = Modifier.clickable {
                         navController.popBackStack()
                     }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Volver atras")
+                Text("Volver atrás")
 
                 Spacer(modifier = Modifier.width(130.dp))
 
@@ -48,119 +50,72 @@ fun Comprar(navController: NavController){
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(imageVector = Icons.Default.ShoppingCart, contentDescription = "Finalizar compra",
                     modifier = Modifier.clickable {
-                        navController.navigate(route = AppScreens.VerCesta.route)
+                        navController.navigate(AppScreens.VerCesta.route)
                     }
                 )
             }
         }
-    ){
-        BodyComprarScreen(navController)
+    ) {
+        BodyComprarScreen(navController, mvvm)
     }
 }
 
 @Composable
-fun BodyComprarScreen(navController: NavController) {
+fun BodyComprarScreen(navController: NavController, mvvm: ViewModel) {
     val context = LocalContext.current
-    //Se crea un lazycolumn que almacena un elemento items
-    //Ese elemento items almacena la lista con la informacion de los productos y llama a un metodo para maquetar el LazyColumn
+    val uiState by mvvm.uiState.collectAsState()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
         items(lista.toList()) { productos ->
-            //se crea el Card con la informacion
+            var expanded by remember { mutableStateOf(false) }
+
             Card(
                 modifier = Modifier
                     .padding(15.dp)
-                    .clickable {
-                        infoProductos = !infoProductos
-                    },
+                    .clickable { expanded = !expanded },
                 elevation = 5.dp
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    //si infoProductos es true muestra la información con las caracteristicas cortas y si se hace
-                    // clic en la Card se muestra las caracteristicas largas y los botones de Comprar y volver
-                    if(infoProductos) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().wrapContentSize(Alignment.Center),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Image(
-                                modifier = Modifier
-                                    .size(200.dp)
-                                    .padding(start = 16.dp),
-                                painter = painterResource(id = productos.foto),
-                                contentDescription = productos.nombre,
-                                alignment = Alignment.Center
-                            )
-                            Column (
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ){
-                                Text(
-                                    text = productos.nombre,
-                                    style = MaterialTheme.typography.h6,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = productos.caracteristicas,
-                                    style = MaterialTheme.typography.body2,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                            Box(Modifier.fillMaxSize()) {
-                                Text(
-                                    text = "${productos.precio} €",
-                                    style = MaterialTheme.typography.h6,
-                                    modifier = Modifier.align(Alignment.TopCenter)
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Box(
-                                    Modifier.align(Alignment.TopCenter).fillMaxHeight().width(50.dp)
-                                )
-                            }
-                        }
-                    }else {
-                        Image(
-                            modifier = Modifier
-                                .size(200.dp)
-                                .padding(start = 16.dp),
-                            painter = painterResource(id = productos.foto),
-                            contentDescription = productos.nombre,
-                            alignment = Alignment.Center
+                    Image(
+                        modifier = Modifier
+                            .size(200.dp)
+                            .padding(start = 16.dp),
+                        painter = painterResource(id = productos.foto),
+                        contentDescription = productos.nombre,
+                        alignment = Alignment.Center
+                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = productos.nombre,
+                            style = MaterialTheme.typography.h6,
+                            textAlign = TextAlign.Center
                         )
-                        Box(Modifier.fillMaxSize()) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = productos.nombre,
-                                    style = MaterialTheme.typography.h6,
-                                )
-                                Text(
-                                    text = productos.car_larga,
-                                    style = MaterialTheme.typography.body2,
-                                )
-                                Text(
-                                    text = "${productos.precio} €",
-                                    style = MaterialTheme.typography.h6,
-                                )
-                            }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .padding(50.dp)
-                        ) {
-                            //si se pulsa Comprar el nombre y el precio se guarda en la lista listaComprado
+                        Text(
+                            text = if (expanded) productos.car_larga else productos.caracteristicas,
+                            style = MaterialTheme.typography.body2,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "${productos.precio} €",
+                            style = MaterialTheme.typography.h6,
+                            textAlign = TextAlign.Center
+                        )
+                        if (expanded) {
                             OutlinedButton(
                                 onClick = {
-                                    val compra = Compra(nombre = productos.nombre, precio = productos.precio)
-                                    listaComprado.add(compra)
-                                    Toast.makeText(context, "El producto" + productos.nombre + "se ha añadido a la lista de la compra", Toast.LENGTH_SHORT).show()
+                                    mvvm.agregarProductoACesta(productos)
+                                    Toast.makeText(context, "El producto ${productos.nombre} se ha añadido a la lista de la compra", Toast.LENGTH_SHORT).show()
                                 }
                             ) {
                                 Text(text = "Comprar")
@@ -179,3 +134,5 @@ fun BodyComprarScreen(navController: NavController) {
         }
     }
 }
+
+

@@ -1,7 +1,5 @@
 package com.dam2.jose.compras.models
 
-import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import com.dam2.jose.compras.data.Compra
 import com.dam2.jose.compras.data.Datos
@@ -20,10 +18,10 @@ class ViewModel : ViewModel() {
 
     fun agregarProductoACesta(producto: Datos) {
         val compra = Compra(nombre = producto.nombre, precio = producto.precio)
-        _uiState.value.productosEnCesta.add(compra)
+        _uiState.value = _uiState.value.copy(productosEnCesta = _uiState.value.productosEnCesta + compra)
     }
 
-    fun pagar() {
-        _uiState.value = _uiState.value.copy(productosEnCesta = mutableListOf())
+    fun pagar(compra: Compra) {
+        _uiState.value = _uiState.value.copy(productosEnCesta = _uiState.value.productosEnCesta - compra)
     }
 }
